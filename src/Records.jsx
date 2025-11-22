@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./Records.css";
+import { supabase } from "../utiles/supabase";
 
 export const Records = () => {
   const [lerningTitle, setLerningTitle] = useState("");
@@ -8,6 +9,17 @@ export const Records = () => {
   const [error, setError] = useState("");
   const [totalTime, setTotalTime] = useState("");
 
+  const onLoadFunc = () => {
+    const getAllRecords = async () => {
+      const records = await supabase.from("study-record").select("*");
+      return records.data;
+    };
+    const getTodos = async () => {
+      const record = await getAllRecords();
+      setRecords(record);
+    };
+    getTodos();
+  };
   const onChangeLerningTitle = (e) => {
     setLerningTitle(e.target.value);
   };
@@ -19,20 +31,20 @@ export const Records = () => {
       setError("入力されていない項目があります！");
       return;
     }
-    const newRecords = [
-      ...records,
-      { title: lerningTitle, time: parseInt(lerningTime) },
-    ];
+    const newRecords = [...records, { lerningTitle, lerningTime }];
     const newTotalTime = newRecords.reduce((sum, current) => {
-      return sum + current.time;
+      return sum + parseInt(current.lerningTime);
     }, 0);
-
     setRecords(newRecords);
     setTotalTime(newTotalTime);
     setLerningTitle("");
     setLerningTime(0);
     setError("");
   };
+
+  useEffect(() => {
+    onLoadFunc();
+  }, []);
 
   return (
     <>
@@ -65,9 +77,9 @@ export const Records = () => {
       </p>
       {records.map((record) => {
         return (
-          <p key={record.title}>
-            <span>{record.title} </span>
-            <span>{record.time}</span>
+          <p key={record.lerningTitle}>
+            <span>{record.lerningTitle} </span>
+            <span>{record.lerningTime}</span>
           </p>
         );
       })}
