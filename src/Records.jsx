@@ -27,7 +27,7 @@ export const Records = () => {
   const onChangeLerningTime = (e) => {
     setLerningTime(e.target.value);
   };
-  const onClickRegister = () => {
+  const onClickRegister = async () => {
     if (!lerningTitle || !lerningTime) {
       setError("入力されていない項目があります！");
       return;
@@ -41,6 +41,10 @@ export const Records = () => {
     setLerningTitle("");
     setLerningTime(0);
     setError("");
+    await supabase
+      .from("study-record")
+      .insert([{ lerningTitle, lerningTime }])
+      .select();
   };
 
   useEffect(() => {
