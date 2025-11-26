@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import "./Records.css";
 import { supabase } from "../utiles/supabase";
+import { Loading } from "./components/Loading";
 
 export const Records = () => {
   const [lerningTitle, setLerningTitle] = useState("");
@@ -8,17 +9,17 @@ export const Records = () => {
   const [records, setRecords] = useState([]);
   const [error, setError] = useState("");
   const [totalTime, setTotalTime] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
 
-  const onLoadFunc = () => {
-    const getAllRecords = async () => {
+  const getAllRecords = async () => {
+    try {
       const records = await supabase.from("study-record").select("*");
-      return records.data;
-    };
-    const getTodos = async () => {
-      const record = await getAllRecords();
-      setRecords(record);
-    };
-    getTodos();
+      setRecords(records.data);
+    } catch {
+      console.error("読込エラーです");
+    } finally {
+      setIsLoading(false);
+    }
   };
   const onChangeLerningTitle = (e) => {
     setLerningTitle(e.target.value);
@@ -43,10 +44,12 @@ export const Records = () => {
   };
 
   useEffect(() => {
-    onLoadFunc();
+    getAllRecords();
   }, []);
 
-  return (
+  return isLoading ? (
+    <Loading />
+  ) : (
     <>
       <h1>学習記録一覧</h1>
       <p>
