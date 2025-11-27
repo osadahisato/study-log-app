@@ -13,8 +13,11 @@ export const Records = () => {
 
   const getAllRecords = async () => {
     try {
-      const records = await supabase.from("study-record").select("*");
-      setRecords(records.data);
+      const { data: newRecords } = await supabase
+        .from("study-record")
+        .select("*");
+      setRecords(newRecords);
+      return newRecords;
     } catch {
       console.error("読込エラーです");
     } finally {
@@ -32,7 +35,11 @@ export const Records = () => {
       setError("入力されていない項目があります！");
       return;
     }
-    const newRecords = [...records, { lerningTitle, lerningTime }];
+    await supabase
+      .from("study-record")
+      .insert([{ lerningTitle, lerningTime }])
+      .select();
+    const newRecords = await getAllRecords();
     const newTotalTime = newRecords.reduce((sum, current) => {
       return sum + parseInt(current.lerningTime);
     }, 0);
@@ -41,10 +48,13 @@ export const Records = () => {
     setLerningTitle("");
     setLerningTime(0);
     setError("");
+  };
+  const onClickDelete = async (id) => {
     await supabase
       .from("study-record")
-      .insert([{ lerningTitle, lerningTime }])
-      .select();
+      .delete()
+      .eq("id", id);
+    await getAllRecords();
   };
 
   useEffect(() => {
@@ -83,10 +93,12 @@ export const Records = () => {
         時間
       </p>
       {records.map((record) => {
+        const { id, lerningTitle, lerningTime } = record;
         return (
-          <p key={record.lerningTitle}>
-            <span>{record.lerningTitle} </span>
-            <span>{record.lerningTime}</span>
+          <p key={id}>
+            <span>{lerningTitle} </span>
+            <span>{lerningTime}</span>
+            <button onClick={() => onClickDelete(id)}>削除</button>
           </p>
         );
       })}
