@@ -54,7 +54,11 @@ export const Records = () => {
       .from("study-record")
       .delete()
       .eq("id", id);
-    await getAllRecords();
+    const newRecords = await getAllRecords();
+    const newTotalTime = newRecords.reduce((sum, current) => {
+      return sum + parseInt(current.lerningTime);
+    }, 0);
+    setTotalTime(newTotalTime);
   };
 
   useEffect(() => {
